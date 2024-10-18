@@ -17,3 +17,9 @@ VALUES (?, ?, ?, ?);
 -- name: CreateOrder :exec
 INSERT INTO Orders(VisitId, DishId, Rating, ReviewText)
 VALUES (?, ?, ?, ?);
+
+-- name: GetVisitOwnerByID :one
+SELECT UserId FROM Visit WHERE id = ?;
+
+-- name: DeleteVisitByID :exec
+DELETE FROM Visit WHERE id = ?;

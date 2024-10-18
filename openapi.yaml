@@ -41,4 +41,29 @@ paths:
                 type: string
         '400':
           description: "search_term was not sent"
-
+          
+  /visits/{visit_id}:
+    delete:
+      summary: Delete a visit
+      parameters:
+        - in: path
+          name: visit_id
+          required: true
+          schema:
+            type: integer
+        - in: query
+          name: user_id
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Visit successfully deleted
+        '400':
+          description: Bad request
+        '403':
+          description: Unauthorized
+        '404':
+          description: Visit not found
+        '500':
+          description: Internal server error
