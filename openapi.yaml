@@ -9,6 +9,8 @@ tags:
     description: Metadata about the server health
   - name: restaurant
     description: Everything about restaurants
+  - name: visits
+    description: Operations related to restaurant visits
 paths:
   /ping:
     get:
@@ -28,7 +30,7 @@ paths:
       parameters:
         - name: search_term
           in: query
-          description: The search term aginst which matching restaurants are returned
+          description: The search term against which matching restaurants are returned
           required: true
           schema:
             type: string
@@ -38,7 +40,55 @@ paths:
           content:
             application/json:
               schema:
-                type: string
+                type: object
+                properties:
+                  restaurants:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        Name:
+                          type: string
         '400':
           description: "search_term was not sent"
-
+  /visits/{visit_id}:
+    put:
+      tags:
+        - visits
+      summary: Update an existing visit
+      description: Updates the date, time, and restaurant_id of a visit.
+      parameters:
+        - name: visit_id
+          in: path
+          required: true
+          description: ID of the visit to update
+          schema:
+            type: string
+        - name: user_id
+          in: query
+          required: true
+          description: ID of the user making the request
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                date:
+                  type: string
+                  format: date
+                time:
+                  type: string
+                  format: time
+                restaurant_id:
+                  type: integer
+      responses:
+        '200':
+          description: "Visit updated successfully"
+        '400':
+          description: "Invalid request body or missing user_id"
+        '403':
+          description: "Unauthorized access"
