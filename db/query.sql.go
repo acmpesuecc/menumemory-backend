@@ -56,9 +56,9 @@ func (q *Queries) CreateVisit(ctx context.Context, arg CreateVisitParams) error 
 }
 
 const getOrdersForVisit = `-- name: GetOrdersForVisit :many
-SELECT d.Name, o.Rating, o.ReviewText from
-    Orders o join Dish d on o.DishId = d.id
-    where o.VisitId = ?
+SELECT d.Name, o.Rating, o.ReviewText FROM
+    Orders o JOIN Dish d ON o.DishId = d.id
+    WHERE o.VisitId = ?
 `
 
 type GetOrdersForVisitRow struct {
@@ -91,8 +91,8 @@ func (q *Queries) GetOrdersForVisit(ctx context.Context, visitid sql.NullInt64) 
 }
 
 const getRestaurantHistory = `-- name: GetRestaurantHistory :many
-SELECT id, Date, Time from Visit
-    where UserId = ? and RestaurantId = ?
+SELECT id, Date, Time FROM Visit
+    WHERE UserId = ? AND RestaurantId = ?
 `
 
 type GetRestaurantHistoryParams struct {
@@ -130,7 +130,7 @@ func (q *Queries) GetRestaurantHistory(ctx context.Context, arg GetRestaurantHis
 }
 
 const getRestaurantsLike = `-- name: GetRestaurantsLike :many
-SELECT id, name, area, address, mapslink, mapsratingoutof5 FROM Restaurant where Name like ?
+SELECT id, name, area, address, mapslink, mapsratingoutof5 FROM Restaurant WHERE Name LIKE ?
 `
 
 func (q *Queries) GetRestaurantsLike(ctx context.Context, name string) ([]Restaurant, error) {
@@ -161,4 +161,54 @@ func (q *Queries) GetRestaurantsLike(ctx context.Context, name string) ([]Restau
 		return nil, err
 	}
 	return items, nil
+}
+
+const getVisitById = `-- name: GetVisitById :one
+SELECT id, Date, Time, UserId, RestaurantId FROM Visit WHERE id = ?
+`
+
+type GetVisitByIdRow struct {
+	ID           int64
+	Date         time.Time
+	Time         interface{}
+	Userid       sql.NullInt64
+	Restaurantid sql.NullInt64
+}
+
+func (q *Queries) GetVisitById(ctx context.Context, id int64) (GetVisitByIdRow, error) {
+	row := q.db.QueryRowContext(ctx, getVisitById, id)
+	var i GetVisitByIdRow
+	err := row.Scan(
+		&i.ID,
+		&i.Date,
+		&i.Time,
+		&i.Userid,
+		&i.Restaurantid,
+	)
+	return i, err
+}
+
+const updateVisit = `-- name: UpdateVisit :exec
+UPDATE Visit
+SET date = ?, time = ?, restaurantId = ?
+WHERE id = ? AND userId = ?
+`
+
+type UpdateVisitParams struct {
+	Date         time.Time
+	Time         interface{}
+	Restaurantid sql.NullInt64
+	ID           int64
+	Userid       sql.NullInt64
+}
+
+func (q *Queries) UpdateVisit(ctx context.Context, arg UpdateVisitParams) error {
+	_, err := q.db.ExecContext(ctx, updateVisit,
+		arg.Date,
+		arg.Time,
+		arg.Restaurantid,
+		arg.ID,
+		arg.Userid,
+	)
+	return err
 }

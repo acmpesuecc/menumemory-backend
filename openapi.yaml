@@ -9,6 +9,8 @@ tags:
     description: Metadata about the server health
   - name: restaurant
     description: Everything about restaurants
+  - name: visits
+    description: Manage visits and their details
 paths:
   /ping:
     get:
@@ -19,26 +21,138 @@ paths:
       responses:
         '200':
           description: Server is alive
+
   /restaurants:
     get:
       tags:
         - restaurant
       summary: Get restaurants matching a search term
-      description: Get restaurants matching a search term
+      description: Get restaurants matching a search term.
       parameters:
         - name: search_term
           in: query
-          description: The search term aginst which matching restaurants are returned
+          description: The search term against which matching restaurants are returned.
           required: true
           schema:
             type: string
       responses:
         '200':
-          description: "Successful operation"
+          description: Successful operation
           content:
             application/json:
               schema:
-                type: string
+                type: object
+                properties:
+                  restaurants:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Restaurant'
         '400':
-          description: "search_term was not sent"
+          description: search_term was not sent
 
+  /visits/{visit_id}:
+    put:
+      tags:
+        - visits
+      summary: Update a specific visit
+      description: Update the details of an existing visit by visit_id. Only the date, time, and restaurant_id can be updated.
+      parameters:
+        - name: visit_id
+          in: path
+          required: true
+          description: The ID of the visit to update.
+          schema:
+            type: integer
+        - name: user_id
+          in: query
+          required: true
+          description: The ID of the user making the request. This will be used to verify if the visit belongs to the user.
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                date:
+                  type: string
+                  format: date
+                  example: "2021-10-17"
+                time:
+                  type: string
+                  format: time
+                  example: "18:24:00"
+                restaurant_id:
+                  type: integer
+                  example: 1
+              required:
+                - date
+                - time
+                - restaurant_id
+      responses:
+        '200':
+          description: Visit updated successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Visit updated successfully."
+        '400':
+          description: Bad request due to validation errors.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Invalid request data."
+        '403':
+          description: User is not authorized to update this visit.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Unauthorized to update this visit."
+        '404':
+          description: Visit not found.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Visit not found."
+components:
+  schemas:
+    Restaurant:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        name:
+          type: string
+          example: "Milano Restaurant"
+        area:
+          type: string
+          example: "Downtown"
+        address:
+          type: string
+          example: "123 Main St"
+        mapslink:
+          type: string
+          example: "https://maps.google.com/some-link"
+        mapsratingoutof5:
+          type: number
+          format: float
+          example: 4.5
