@@ -57,3 +57,51 @@ func TestGetRestaurants(t *testing.T) {
 		assert.Contains(t, strings.ToLower(restaurant.Name), "milano")
 	}
 }
+
+
+func TestDeleteVisitHandler(t *testing.T) {
+    // Test case 1: Missing user_id
+    w := httptest.NewRecorder()
+    req, _ := http.NewRequest("DELETE", "/visits/1", nil)
+    router.ServeHTTP(w, req)
+    assert.Equal(t, 400, w.Code)
+    assert.Contains(t, w.Body.String(), "user_id is required")
+
+    // Test case 2: Unauthorized access (user_id != "1")
+    w = httptest.NewRecorder()
+    req, _ = http.NewRequest("DELETE", "/visits/1?user_id=2", nil)
+    router.ServeHTTP(w, req)
+    assert.Equal(t, 403, w.Code)
+    assert.Contains(t, w.Body.String(), "Unauthorized access")
+
+    // Test case 3: Invalid visit_id
+    w = httptest.NewRecorder()
+    req, _ = http.NewRequest("DELETE", "/visits/invalid?user_id=1", nil)
+    router.ServeHTTP(w, req)
+    assert.Equal(t, 400, w.Code)
+    assert.Contains(t, w.Body.String(), "Invalid visit_id")
+
+    // Test case 4: Visit not found
+    // This assumes that visit with ID 9999 doesn't exist in your test database
+    w = httptest.NewRecorder()
+    req, _ = http.NewRequest("DELETE", "/visits/9999?user_id=1", nil)
+    router.ServeHTTP(w, req)
+    assert.Equal(t, 404, w.Code)
+    assert.Contains(t, w.Body.String(), "Visit not found")
+
+    // Test case 5: Visit doesn't belong to user
+    // This assumes that visit with ID 2 exists but doesn't belong to user 1
+    w = httptest.NewRecorder()
+    req, _ = http.NewRequest("DELETE", "/visits/2?user_id=1", nil)
+    router.ServeHTTP(w, req)
+    assert.Equal(t, 403, w.Code)
+    assert.Contains(t, w.Body.String(), "Visit does not belong to user")
+
+    // Test case 6: Successful deletion
+    // This assumes that visit with ID 1 exists and belongs to user 1
+    w = httptest.NewRecorder()
+    req, _ = http.NewRequest("DELETE", "/visits/1?user_id=1", nil)
+    router.ServeHTTP(w, req)
+    assert.Equal(t, 204, w.Code)
+    assert.Empty(t, w.Body.String())
+}

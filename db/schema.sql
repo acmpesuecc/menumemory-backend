@@ -30,6 +30,7 @@ create table if not exists Visit (
     foreign key (RestaurantId) references restaurant(id)
 );
 
+
 create table if not exists Orders (
     id integer primary key autoincrement,
     VisitId integer,
@@ -39,3 +40,4 @@ create table if not exists Orders (
     foreign key (VisitId) references visit(id),
     foreign key (DishId) references dish(id)
 );
+
